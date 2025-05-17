@@ -13,8 +13,6 @@
         <levelValue>[ignore]</levelValue>
         <version>[ignore]</version>
       </fieldNames>
-
-      <jsonGeneratorDecorator class="net.logstash.logback.decorate.PrettyPrintingJsonGeneratorDecorator"/>
     </encoder>
   </appender>
 

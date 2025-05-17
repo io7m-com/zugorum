@@ -23,7 +23,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 
-import java.io.IOException;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
@@ -87,11 +86,20 @@ final class ZuCheckHTTP2xx
       final var response =
         this.client.send(request, HttpResponse.BodyHandlers.discarding());
 
+      MDC.put("Status", Integer.toString(response.statusCode()));
+      if (response.statusCode() >= 400) {
+        LOG.error("Request received an error.");
+      } else {
+        LOG.info("Request succeeded.");
+      }
+      MDC.remove("Status");
+
       metrics.httpStatus(this.config.uri(), response.statusCode());
-    } catch (final IOException e) {
-      metrics.httpException(this.config.uri(), e);
     } catch (final InterruptedException e) {
-      throw new RuntimeException(e);
+      Thread.currentThread().interrupt();
+    } catch (final Exception e) {
+      LOG.error("Request exception: ", e);
+      metrics.httpException(this.config.uri(), e);
     }
   }
 
