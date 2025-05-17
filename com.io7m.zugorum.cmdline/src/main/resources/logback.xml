@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<configuration>
+
+  <appender name="JsonConsoleAppender" class="ch.qos.logback.core.ConsoleAppender">
+    <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+      <fieldNames>
+        <message>Message</message>
+        <stackTrace>StackTrace</stackTrace>
+        <logger>Logger</logger>
+        <thread>Thread</thread>
+        <level>Level</level>
+        <levelValue>[ignore]</levelValue>
+        <version>[ignore]</version>
+      </fieldNames>
+
+      <jsonGeneratorDecorator class="net.logstash.logback.decorate.PrettyPrintingJsonGeneratorDecorator"/>
+    </encoder>
+  </appender>
+
+  <root level="INFO">
+    <appender-ref ref="JsonConsoleAppender"/>
+  </root>
+
+</configuration>

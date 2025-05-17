@@ -1,0 +1,36 @@
+{
+  "ListenAddress": "0.0.0.0",
+  "ListenPort": 8190,
+  "Checks": [
+    {
+      "Type": "HTTP2xx",
+      "URI": "https://example.invalid",
+      "PauseMinimum": "PT1S",
+      "PauseMaximum": "PT10S"
+    },
+    {
+      "Type": "HTTP2xx",
+      "URI": "https://www.io7m.com",
+      "PauseMinimum": "PT1S",
+      "PauseMaximum": "PT10S"
+    },
+    {
+      "Type": "HTTP2xx",
+      "URI": "http://www.io7m.com",
+      "PauseMinimum": "PT1S",
+      "PauseMaximum": "PT10S"
+    },
+    {
+      "Type": "HTTP2xx",
+      "URI": "https://blog.io7m.com",
+      "PauseMinimum": "PT1S",
+      "PauseMaximum": "PT10S"
+    },
+    {
+      "Type": "HTTP2xx",
+      "URI": "http://blog.io7m.com",
+      "PauseMinimum": "PT1S",
+      "PauseMaximum": "PT10S"
+    }
+  ]
+}

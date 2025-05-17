@@ -1,0 +1,12 @@
+#!/bin/sh
+
+if [ -z "${ZUGORUM_HOME}" ]
+then
+  echo "ZUGORUM_HOME is unset" 1>&2
+  exit 1
+fi
+
+exec /usr/bin/env java \
+-p "${ZUGORUM_HOME}/lib" \
+-m com.io7m.zugorum.cmdline/com.io7m.zugorum.cmdline.ZuMain \
+"$@"
