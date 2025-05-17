@@ -23,9 +23,11 @@ module com.io7m.zugorum.cmdline
   requires static org.osgi.annotation.bundle;
   requires static org.osgi.annotation.versioning;
 
+  requires com.io7m.zugorum.server;
+
   requires com.io7m.quarrel.core;
   requires com.io7m.quarrel.ext.logback;
-  requires com.io7m.zugorum.server;
+  requires logstash.logback.encoder;
 
   exports com.io7m.zugorum.cmdline;
 }

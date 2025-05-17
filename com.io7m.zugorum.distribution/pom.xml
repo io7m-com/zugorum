@@ -51,7 +51,6 @@
             </goals>
             <phase>package</phase>
             <configuration>
-              <finalName>zugorum</finalName>
               <descriptors>
                 <descriptor>src/main/assembly/distribution.xml</descriptor>
               </descriptors>

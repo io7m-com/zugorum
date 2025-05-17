@@ -1,0 +1,55 @@
+
+## zugorum
+
+The `zugorum` package provides a server for making requests to external sites
+in order to test liveness, and publishing the results as [Prometheus](https://prometheus.io/)
+metrics.
+
+## Features
+
+* Check the liveness of external sites and publish Prometheus metrics.
+* A small, easily auditable codebase.
+* Platform independence. No platform-dependent code is included in any form,
+  and installations can largely be carried between platforms without changes.
+* [OCI](https://opencontainers.org/)-ready: Ready to run as an immutable,
+  stateless, read-only, unprivileged container for maximum security and
+  reliability.
+* [OSGi](https://www.osgi.org/)-ready.
+* [JPMS](https://en.wikipedia.org/wiki/Java_Platform_Module_System)-ready.
+* ISC license.
+
+## Usage
+
+```
+{
+  "ListenAddress": "0.0.0.0",
+  "ListenPort": 8190,
+  "Checks": [
+    {
+      "Type": "HTTP2xx",
+      "URI": "https://example.invalid",
+      "PauseMinimum": "PT1S",
+      "PauseMaximum": "PT10S"
+    },
+    {
+      "Type": "HTTP2xx",
+      "URI": "https://www.io7m.com",
+      "PauseMinimum": "PT1S",
+      "PauseMaximum": "PT10S"
+    },
+    {
+      "Type": "HTTP2xx",
+      "URI": "http://www.io7m.com",
+      "PauseMinimum": "PT1S",
+      "PauseMaximum": "PT10S"
+    },
+    ...
+}
+```
+
+```
+$ zygorum server --configuration config.json
+```
+
+Prometheus metrics will be available on port `8190`.
+
