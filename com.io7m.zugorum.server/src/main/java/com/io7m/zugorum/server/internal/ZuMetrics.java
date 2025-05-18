@@ -66,9 +66,11 @@ public final class ZuMetrics
     final int statusCode)
   {
     Objects.requireNonNull(uri, "uri");
+
     this.metrics.put(
       uri,
-      new HTTPMetricStatus(uri, statusCode, Optional.empty()));
+      new HTTPMetricStatus(uri, statusCode, Optional.empty())
+    );
   }
 
   /**
@@ -91,7 +93,110 @@ public final class ZuMetrics
         exception.getClass().getName()
       );
 
-    this.metrics.put(uri, new HTTPMetricStatus(uri, 600, Optional.of(message)));
+    this.metrics.put(uri, new SMTPMetricStatus(uri, true, message));
+  }
+
+  /**
+   * Report an HTTP error.
+   *
+   * @param uri     The URI
+   * @param message The message
+   */
+
+  public void smtpError(
+    final URI uri,
+    final String message)
+  {
+    Objects.requireNonNull(uri, "uri");
+
+    this.metrics.put(
+      uri,
+      new SMTPMetricStatus(uri, true, message)
+    );
+  }
+
+  /**
+   * Report an SMTP exception.
+   *
+   * @param uri       The URI
+   * @param exception The exception
+   */
+
+  public void smtpException(
+    final URI uri,
+    final Exception exception)
+  {
+    Objects.requireNonNull(uri, "uri");
+    Objects.requireNonNull(exception, "e");
+
+    final var message =
+      Objects.requireNonNullElse(
+        exception.getMessage(),
+        exception.getClass().getName()
+      );
+
+    this.metrics.put(uri, new SMTPMetricStatus(uri, true, message));
+  }
+
+  /**
+   * Report that SMTP is OK.
+   *
+   * @param uri     The URI
+   * @param message The message
+   */
+
+  public void smtpOK(
+    final URI uri,
+    final String message)
+  {
+    Objects.requireNonNull(uri, "uri");
+
+    this.metrics.put(
+      uri,
+      new SMTPMetricStatus(uri, false, message)
+    );
+  }
+
+  /**
+   * Report that TLS is OK.
+   *
+   * @param uri The URI
+   */
+
+  public void tlsOK(
+    final URI uri)
+  {
+    Objects.requireNonNull(uri, "uri");
+
+    this.metrics.put(
+      uri,
+      new SMTPMetricStatus(uri, false, "")
+    );
+  }
+
+  /**
+   * Report a TLS exception.
+   *
+   * @param uri       The URI
+   * @param exception The exception
+   */
+
+  public void tlsException(
+    final URI uri,
+    final Exception exception)
+  {
+    Objects.requireNonNull(uri, "uri");
+
+    final var message =
+      Objects.requireNonNullElse(
+        exception.getMessage(),
+        exception.getClass().getName()
+      );
+
+    this.metrics.put(
+      uri,
+      new SMTPMetricStatus(uri, false, message)
+    );
   }
 
   /**
@@ -133,6 +238,64 @@ public final class ZuMetrics
     {
       Objects.requireNonNull(uri, "uri");
       Objects.requireNonNull(failureMessage, "failureMessage");
+    }
+  }
+
+  /**
+   * An SMTP status metric.
+   *
+   * @param uri     The URI
+   * @param failure @{code true} if the request failed
+   * @param message The message
+   */
+
+  public record SMTPMetricStatus(
+    URI uri,
+    boolean failure,
+    String message)
+    implements MetricType
+  {
+    /**
+     * An SMTP status metric.
+     *
+     * @param uri     The URI
+     * @param failure @{code true} if the request failed
+     * @param message The message
+     */
+
+    public SMTPMetricStatus
+    {
+      Objects.requireNonNull(uri, "uri");
+      Objects.requireNonNull(message, "message");
+    }
+  }
+
+  /**
+   * A TLS status metric.
+   *
+   * @param uri     The URI
+   * @param failure @{code true} if the request failed
+   * @param message The message
+   */
+
+  public record TLSMetricStatus(
+    URI uri,
+    boolean failure,
+    String message)
+    implements MetricType
+  {
+    /**
+     * A TLS status metric.
+     *
+     * @param uri     The URI
+     * @param failure @{code true} if the request failed
+     * @param message The message
+     */
+
+    public TLSMetricStatus
+    {
+      Objects.requireNonNull(uri, "uri");
+      Objects.requireNonNull(message, "message");
     }
   }
 }

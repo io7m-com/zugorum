@@ -129,6 +129,103 @@ public record ZuConfiguration(
     }
   }
 
+  public record CheckSMTPHELO(
+    @JsonProperty(value = "Type", required = true)
+    @JsonPropertyDescription("The check type.")
+    String type,
+
+    @JsonProperty(value = "URI", required = true)
+    @JsonPropertyDescription("The target address.")
+    URI uri,
+
+    @JsonProperty(value = "HELO", required = true)
+    @JsonPropertyDescription("The HELO message.")
+    String helo,
+
+    @JsonProperty(value = "PauseMinimum")
+    @JsonPropertyDescription("The minimum pause time.")
+    Duration pauseMinimum,
+
+    @JsonProperty(value = "PauseMaximum")
+    @JsonPropertyDescription("The maximum pause time.")
+    Duration pauseMaximum)
+    implements CheckType
+  {
+    /**
+     * The check type.
+     */
+
+    public static final String TYPE =
+      "SMTPHELO";
+
+    public CheckSMTPHELO
+    {
+      Objects.requireNonNull(type, "type");
+      Objects.requireNonNull(uri, "uri");
+      Objects.requireNonNull(helo, "helo");
+
+      pauseMinimum =
+        Objects.requireNonNullElse(pauseMinimum, Duration.ofSeconds(60L));
+      pauseMaximum =
+        Objects.requireNonNullElse(pauseMaximum, Duration.ofMinutes(10L));
+
+      if (pauseMaximum.compareTo(pauseMinimum) < 0) {
+        pauseMaximum = pauseMinimum;
+      }
+
+      if (!type.equals(TYPE)) {
+        throw new IllegalArgumentException(
+          "Type must be %s".formatted(TYPE));
+      }
+    }
+  }
+
+  public record CheckTLS(
+    @JsonProperty(value = "Type", required = true)
+    @JsonPropertyDescription("The check type.")
+    String type,
+
+    @JsonProperty(value = "URI", required = true)
+    @JsonPropertyDescription("The target address.")
+    URI uri,
+
+    @JsonProperty(value = "PauseMinimum")
+    @JsonPropertyDescription("The minimum pause time.")
+    Duration pauseMinimum,
+
+    @JsonProperty(value = "PauseMaximum")
+    @JsonPropertyDescription("The maximum pause time.")
+    Duration pauseMaximum)
+    implements CheckType
+  {
+    /**
+     * The check type.
+     */
+
+    public static final String TYPE =
+      "TLS";
+
+    public CheckTLS
+    {
+      Objects.requireNonNull(type, "type");
+      Objects.requireNonNull(uri, "uri");
+
+      pauseMinimum =
+        Objects.requireNonNullElse(pauseMinimum, Duration.ofSeconds(60L));
+      pauseMaximum =
+        Objects.requireNonNullElse(pauseMaximum, Duration.ofMinutes(10L));
+
+      if (pauseMaximum.compareTo(pauseMinimum) < 0) {
+        pauseMaximum = pauseMinimum;
+      }
+
+      if (!type.equals(TYPE)) {
+        throw new IllegalArgumentException(
+          "Type must be %s".formatted(TYPE));
+      }
+    }
+  }
+
   public static final class CheckDeserializer
     extends JsonDeserializer<CheckType>
   {
@@ -171,6 +268,12 @@ public record ZuConfiguration(
         case CheckHTTP2xx.TYPE -> {
           yield ctx.readTreeAsValue(node, CheckHTTP2xx.class);
         }
+        case CheckSMTPHELO.TYPE -> {
+          yield ctx.readTreeAsValue(node, CheckSMTPHELO.class);
+        }
+        case CheckTLS.TYPE -> {
+          yield ctx.readTreeAsValue(node, CheckTLS.class);
+        }
         default -> {
           throw new JsonMappingException(
             jsonParser,
@@ -182,8 +285,13 @@ public record ZuConfiguration(
     }
   }
 
-  public static final class ConfigurationModule extends Module
+  public static final class ConfigurationModule
+    extends Module
   {
+    public ConfigurationModule()
+    {
+
+    }
 
     @Override
     public String getModuleName()

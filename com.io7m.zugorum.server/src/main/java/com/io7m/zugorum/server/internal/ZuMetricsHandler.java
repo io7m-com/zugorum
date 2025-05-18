@@ -52,6 +52,12 @@ public final class ZuMetricsHandler implements Handler
   private static final String HTTP_METRIC_TEXT = """
     # HELP zu_http_status The most recent result of an HTTP/HTTPS status check
     # TYPE zu_http_status gauge
+    
+    # HELP zu_smtp_status The most recent result of an SMTP status check
+    # TYPE zu_smtp_status gauge
+    
+    # HELP zu_tls_status The most recent result of a TLS status check
+    # TYPE zu_tls_status gauge
     """.trim();
 
   @Override
@@ -83,8 +89,48 @@ public final class ZuMetricsHandler implements Handler
         case final ZuMetrics.HTTPMetricStatus httpMetricStatus -> {
           writeMetricHTTP(writer, httpMetricStatus);
         }
+        case final ZuMetrics.SMTPMetricStatus smtpMetricStatus -> {
+          writeMetricSMTP(writer, smtpMetricStatus);
+        }
+        case final ZuMetrics.TLSMetricStatus tlsMetricStatus -> {
+          writeMetricTLS(writer, tlsMetricStatus);
+        }
       }
     }
+  }
+
+  private static void writeMetricTLS(
+    final BufferedWriter writer,
+    final ZuMetrics.TLSMetricStatus tlsMetricStatus)
+    throws IOException
+  {
+    final var metricText =
+      "zu_tls_status{url=\"%s\",message=\"%s\"} %d"
+        .formatted(
+          tlsMetricStatus.uri(),
+          tlsMetricStatus.message(),
+          tlsMetricStatus.failure() ? 1 : 0
+        );
+
+    writer.append(metricText);
+    writer.append("\n");
+  }
+
+  private static void writeMetricSMTP(
+    final BufferedWriter writer,
+    final ZuMetrics.SMTPMetricStatus smtpMetricStatus)
+    throws IOException
+  {
+    final var metricText =
+      "zu_smtp_status{url=\"%s\",message=\"%s\"} %d"
+        .formatted(
+          smtpMetricStatus.uri(),
+          smtpMetricStatus.message(),
+          smtpMetricStatus.failure() ? 1 : 0
+        );
+
+    writer.append(metricText);
+    writer.append("\n");
   }
 
   private static void writeMetricHTTP(
