@@ -75,7 +75,7 @@ public final class ZuMetricsHandler implements Handler
     throws IOException
   {
     writer.append(HTTP_METRIC_TEXT);
-    writer.append("\r\n");
+    writer.append("\n");
 
     final var metricMap = this.metrics.metrics();
     for (final var metric : metricMap.entrySet()) {
@@ -112,6 +112,6 @@ public final class ZuMetricsHandler implements Handler
     });
 
     writer.append(metricText);
-    writer.append("\r\n");
+    writer.append("\n");
   }
 }
