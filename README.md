@@ -64,7 +64,7 @@ metrics.
 ```
 
 ```
-$ zygorum server --configuration config.json
+$ zugorum server --configuration config.json
 ```
 
 Prometheus metrics will be available on port `8190`.
