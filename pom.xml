@@ -39,7 +39,7 @@
 
     <!-- Third-party dependencies. -->
     <com.fasterxml.jackson.version>2.19.0</com.fasterxml.jackson.version>
-    <io.helidon.version>4.2.2</io.helidon.version>
+    <io.helidon.version>4.2.3</io.helidon.version>
   </properties>
 
   <licenses>
