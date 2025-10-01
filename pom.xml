@@ -38,7 +38,7 @@
     <com.io7m.quarrel.version>1.8.0</com.io7m.quarrel.version>
 
     <!-- Third-party dependencies. -->
-    <com.fasterxml.jackson.version>2.19.2</com.fasterxml.jackson.version>
+    <com.fasterxml.jackson.version>2.20.0</com.fasterxml.jackson.version>
     <io.helidon.version>4.2.6</io.helidon.version>
   </properties>
 
