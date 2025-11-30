@@ -38,7 +38,7 @@
     <com.io7m.quarrel.version>1.8.0</com.io7m.quarrel.version>
 
     <!-- Third-party dependencies. -->
-    <com.fasterxml.jackson.version>2.20.1</com.fasterxml.jackson.version>
+    <tools.jackson.version>3.0.3</tools.jackson.version>
     <io.helidon.version>4.3.1</io.helidon.version>
   </properties>
 
@@ -111,9 +111,9 @@
       </dependency>
 
       <dependency>
-        <groupId>com.fasterxml.jackson</groupId>
+        <groupId>tools.jackson</groupId>
         <artifactId>jackson-bom</artifactId>
-        <version>${com.fasterxml.jackson.version}</version>
+        <version>${tools.jackson.version}</version>
         <scope>import</scope>
         <type>pom</type>
       </dependency>
