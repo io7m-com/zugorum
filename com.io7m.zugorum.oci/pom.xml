@@ -24,8 +24,8 @@
     <spotbugs.skip>true</spotbugs.skip>
     <bnd.baseline.skip>true</bnd.baseline.skip>
 
-    <com.io7m.oci.versionAlpine>3.21.3</com.io7m.oci.versionAlpine>
-    <com.io7m.oci.versionTemurin>24.0.1_9-jre-alpine</com.io7m.oci.versionTemurin>
+    <com.io7m.oci.ubi10>10.1-1763138307</com.io7m.oci.ubi10>
+    <com.io7m.oci.versionTemurin>25.0.1_8-jre-ubi10-minimal</com.io7m.oci.versionTemurin>
   </properties>
 
   <profiles>

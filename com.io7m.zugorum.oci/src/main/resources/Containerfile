@@ -1,4 +1,4 @@
-FROM docker.io/library/alpine:${com.io7m.oci.versionAlpine}
+FROM docker.io/redhat/ubi10-micro:${com.io7m.oci.ubi10}
 FROM docker.io/library/eclipse-temurin:${com.io7m.oci.versionTemurin}
 
 ENV PATH="/zugorum/bin:/sbin:/bin:/usr/sbin:/usr/bin:/opt/java/openjdk/bin"
