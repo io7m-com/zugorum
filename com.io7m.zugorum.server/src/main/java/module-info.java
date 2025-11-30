@@ -26,12 +26,10 @@ module com.io7m.zugorum.server
   requires com.io7m.jmulticlose.core;
 
   requires com.fasterxml.jackson.annotation;
-  requires com.fasterxml.jackson.databind;
   requires io.helidon.webserver;
-  requires org.slf4j;
   requires java.net.http;
-  requires com.fasterxml.jackson.datatype.jdk8;
-  requires com.fasterxml.jackson.datatype.jsr310;
+  requires org.slf4j;
+  requires tools.jackson.databind;
 
   exports com.io7m.zugorum.server;
 }

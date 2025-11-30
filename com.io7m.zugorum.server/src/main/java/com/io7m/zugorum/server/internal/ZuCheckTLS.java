@@ -23,32 +23,29 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
+import javax.net.SocketFactory;
+import javax.net.ssl.SSLSocketFactory;
 import java.util.Objects;
 
-final class ZuCheckHTTP2xx
+final class ZuCheckTLS
   extends ZuCheckAbstract
 {
   private static final Logger LOG =
-    LoggerFactory.getLogger(ZuCheckHTTP2xx.class);
+    LoggerFactory.getLogger(ZuCheckTLS.class);
 
-  private final ZuConfiguration.CheckHTTP2xx config;
-  private final HttpClient client;
+  private final ZuConfiguration.CheckTLS config;
+  private final SocketFactory sockets;
 
-  ZuCheckHTTP2xx(
+  ZuCheckTLS(
     final ZuMetrics m,
-    final ZuConfiguration.CheckHTTP2xx inConfig)
+    final ZuConfiguration.CheckTLS inConfig)
   {
     super(LOG, m);
 
     this.config =
       Objects.requireNonNull(inConfig, "config");
-    this.client =
-      HttpClient.newBuilder()
-        .followRedirects(HttpClient.Redirect.ALWAYS)
-        .build();
+    this.sockets =
+      SSLSocketFactory.getDefault();
   }
 
   @Override
@@ -59,7 +56,7 @@ final class ZuCheckHTTP2xx
     LOG.info("Check started.");
 
     final var metrics = this.metrics();
-    metrics.httpStatus(this.config.uri(), 0);
+    metrics.tlsOK(this.config.uri());
 
     while (true) {
       this.makeRequest();
@@ -77,29 +74,23 @@ final class ZuCheckHTTP2xx
       MDC.put("Type", this.config.type());
       LOG.debug("Sending request.");
 
-      final var request =
-        HttpRequest.newBuilder(this.config.uri())
-          .header("User-Agent", userAgent())
-          .GET()
-          .build();
+      final var host =
+        this.config.uri().getHost();
+      final var port =
+        this.config.uri().getPort();
 
-      final var response =
-        this.client.send(request, HttpResponse.BodyHandlers.discarding());
+      if (port == -1) {
+        throw new IllegalArgumentException("Missing port in URI!");
+      }
 
-      MDC.put("Status", Integer.toString(response.statusCode()));
-      if (response.statusCode() >= 400) {
-        LOG.error("Request received an error.");
-      } else {
+      try (final var ignored = this.sockets.createSocket(host, port)) {
         LOG.info("Request succeeded.");
       }
-      MDC.remove("Status");
 
-      metrics.httpStatus(this.config.uri(), response.statusCode());
-    } catch (final InterruptedException e) {
-      Thread.currentThread().interrupt();
+      metrics.tlsOK(this.config.uri());
     } catch (final Exception e) {
       LOG.error("Request exception: ", e);
-      metrics.httpException(this.config.uri(), e);
+      metrics.tlsException(this.config.uri(), e);
     }
   }
 

@@ -19,19 +19,18 @@ package com.io7m.zugorum.server;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.Version;
-import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.JsonDeserializer;
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.Module;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.databind.json.JsonMapper;
-import com.fasterxml.jackson.databind.module.SimpleDeserializers;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import tools.jackson.core.JsonParser;
+import tools.jackson.core.Version;
+import tools.jackson.core.json.JsonReadFeature;
+import tools.jackson.databind.DeserializationContext;
+import tools.jackson.databind.JacksonModule;
+import tools.jackson.databind.ValueDeserializer;
+import tools.jackson.databind.annotation.JsonDeserialize;
+import tools.jackson.databind.annotation.JsonSerialize;
+import tools.jackson.databind.exc.MismatchedInputException;
+import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.module.SimpleDeserializers;
+import tools.jackson.databind.node.ObjectNode;
 
 import java.io.IOException;
 import java.net.URI;
@@ -129,8 +128,105 @@ public record ZuConfiguration(
     }
   }
 
+  public record CheckSMTPHELO(
+    @JsonProperty(value = "Type", required = true)
+    @JsonPropertyDescription("The check type.")
+    String type,
+
+    @JsonProperty(value = "URI", required = true)
+    @JsonPropertyDescription("The target address.")
+    URI uri,
+
+    @JsonProperty(value = "HELO", required = true)
+    @JsonPropertyDescription("The HELO message.")
+    String helo,
+
+    @JsonProperty(value = "PauseMinimum")
+    @JsonPropertyDescription("The minimum pause time.")
+    Duration pauseMinimum,
+
+    @JsonProperty(value = "PauseMaximum")
+    @JsonPropertyDescription("The maximum pause time.")
+    Duration pauseMaximum)
+    implements CheckType
+  {
+    /**
+     * The check type.
+     */
+
+    public static final String TYPE =
+      "SMTPHELO";
+
+    public CheckSMTPHELO
+    {
+      Objects.requireNonNull(type, "type");
+      Objects.requireNonNull(uri, "uri");
+      Objects.requireNonNull(helo, "helo");
+
+      pauseMinimum =
+        Objects.requireNonNullElse(pauseMinimum, Duration.ofSeconds(60L));
+      pauseMaximum =
+        Objects.requireNonNullElse(pauseMaximum, Duration.ofMinutes(10L));
+
+      if (pauseMaximum.compareTo(pauseMinimum) < 0) {
+        pauseMaximum = pauseMinimum;
+      }
+
+      if (!type.equals(TYPE)) {
+        throw new IllegalArgumentException(
+          "Type must be %s".formatted(TYPE));
+      }
+    }
+  }
+
+  public record CheckTLS(
+    @JsonProperty(value = "Type", required = true)
+    @JsonPropertyDescription("The check type.")
+    String type,
+
+    @JsonProperty(value = "URI", required = true)
+    @JsonPropertyDescription("The target address.")
+    URI uri,
+
+    @JsonProperty(value = "PauseMinimum")
+    @JsonPropertyDescription("The minimum pause time.")
+    Duration pauseMinimum,
+
+    @JsonProperty(value = "PauseMaximum")
+    @JsonPropertyDescription("The maximum pause time.")
+    Duration pauseMaximum)
+    implements CheckType
+  {
+    /**
+     * The check type.
+     */
+
+    public static final String TYPE =
+      "TLS";
+
+    public CheckTLS
+    {
+      Objects.requireNonNull(type, "type");
+      Objects.requireNonNull(uri, "uri");
+
+      pauseMinimum =
+        Objects.requireNonNullElse(pauseMinimum, Duration.ofSeconds(60L));
+      pauseMaximum =
+        Objects.requireNonNullElse(pauseMaximum, Duration.ofMinutes(10L));
+
+      if (pauseMaximum.compareTo(pauseMinimum) < 0) {
+        pauseMaximum = pauseMinimum;
+      }
+
+      if (!type.equals(TYPE)) {
+        throw new IllegalArgumentException(
+          "Type must be %s".formatted(TYPE));
+      }
+    }
+  }
+
   public static final class CheckDeserializer
-    extends JsonDeserializer<CheckType>
+    extends ValueDeserializer<CheckType>
   {
     public CheckDeserializer()
     {
@@ -147,43 +243,49 @@ public record ZuConfiguration(
     public CheckType deserialize(
       final JsonParser jsonParser,
       final DeserializationContext ctx)
-      throws IOException
     {
-      final var codec =
-        jsonParser.getCodec();
       final ObjectNode node =
-        codec.readTree(jsonParser);
+        jsonParser.readValueAsTree();
       final var typeNode =
         node.get("Type");
 
       if (typeNode == null) {
-        throw new JsonMappingException(
+        throw MismatchedInputException.from(
           jsonParser,
-          "Missing Type node in check.",
-          jsonParser.currentLocation()
+          "Missing Type node in check."
         );
       }
 
       final var type =
-        typeNode.asText();
+        typeNode.asString();
 
       return switch (type) {
         case CheckHTTP2xx.TYPE -> {
           yield ctx.readTreeAsValue(node, CheckHTTP2xx.class);
         }
+        case CheckSMTPHELO.TYPE -> {
+          yield ctx.readTreeAsValue(node, CheckSMTPHELO.class);
+        }
+        case CheckTLS.TYPE -> {
+          yield ctx.readTreeAsValue(node, CheckTLS.class);
+        }
         default -> {
-          throw new JsonMappingException(
+          throw MismatchedInputException.from(
             jsonParser,
-            "Unrecognized check type: %s".formatted(type),
-            jsonParser.currentLocation()
+            "Unrecognized check type: %s".formatted(type)
           );
         }
       };
     }
   }
 
-  public static final class ConfigurationModule extends Module
+  public static final class ConfigurationModule
+    extends JacksonModule
   {
+    public ConfigurationModule()
+    {
+
+    }
 
     @Override
     public String getModuleName()
@@ -222,10 +324,8 @@ public record ZuConfiguration(
 
     final var mapper =
       JsonMapper.builder()
-        .enable(JsonParser.Feature.ALLOW_COMMENTS)
+        .enable(JsonReadFeature.ALLOW_JAVA_COMMENTS)
         .addModule(new ConfigurationModule())
-        .addModule(new Jdk8Module())
-        .addModule(new JavaTimeModule())
         .build();
 
     try (final var stream = Files.newInputStream(file)) {

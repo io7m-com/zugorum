@@ -59,6 +59,12 @@ public final class ZuCheckRunner implements AutoCloseable
         case final ZuConfiguration.CheckHTTP2xx checkHTTP2xx -> {
           runner.executor.execute(new ZuCheckHTTP2xx(metrics, checkHTTP2xx));
         }
+        case final ZuConfiguration.CheckSMTPHELO checkSMTPHELO -> {
+          runner.executor.execute(new ZuCheckSMTPHELO(metrics, checkSMTPHELO));
+        }
+        case final ZuConfiguration.CheckTLS checkTLS -> {
+          runner.executor.execute(new ZuCheckTLS(metrics, checkTLS));
+        }
       }
     }
     return runner;
@@ -67,6 +73,8 @@ public final class ZuCheckRunner implements AutoCloseable
   @Override
   public void close()
   {
-    this.executor.close();
+    if (this.closed.compareAndSet(false, true)) {
+      this.executor.close();
+    }
   }
 }

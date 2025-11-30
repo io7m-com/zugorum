@@ -23,32 +23,29 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.net.Socket;
 import java.util.Objects;
 
-final class ZuCheckHTTP2xx
+final class ZuCheckSMTPHELO
   extends ZuCheckAbstract
 {
   private static final Logger LOG =
-    LoggerFactory.getLogger(ZuCheckHTTP2xx.class);
+    LoggerFactory.getLogger(ZuCheckSMTPHELO.class);
 
-  private final ZuConfiguration.CheckHTTP2xx config;
-  private final HttpClient client;
+  private final ZuConfiguration.CheckSMTPHELO config;
 
-  ZuCheckHTTP2xx(
+  ZuCheckSMTPHELO(
     final ZuMetrics m,
-    final ZuConfiguration.CheckHTTP2xx inConfig)
+    final ZuConfiguration.CheckSMTPHELO inConfig)
   {
     super(LOG, m);
 
     this.config =
       Objects.requireNonNull(inConfig, "config");
-    this.client =
-      HttpClient.newBuilder()
-        .followRedirects(HttpClient.Redirect.ALWAYS)
-        .build();
   }
 
   @Override
@@ -59,7 +56,7 @@ final class ZuCheckHTTP2xx
     LOG.info("Check started.");
 
     final var metrics = this.metrics();
-    metrics.httpStatus(this.config.uri(), 0);
+    metrics.smtpOK(this.config.uri(), "");
 
     while (true) {
       this.makeRequest();
@@ -77,29 +74,47 @@ final class ZuCheckHTTP2xx
       MDC.put("Type", this.config.type());
       LOG.debug("Sending request.");
 
-      final var request =
-        HttpRequest.newBuilder(this.config.uri())
-          .header("User-Agent", userAgent())
-          .GET()
-          .build();
+      final var host =
+        this.config.uri().getHost();
+      var port =
+        this.config.uri().getPort();
 
-      final var response =
-        this.client.send(request, HttpResponse.BodyHandlers.discarding());
-
-      MDC.put("Status", Integer.toString(response.statusCode()));
-      if (response.statusCode() >= 400) {
-        LOG.error("Request received an error.");
-      } else {
-        LOG.info("Request succeeded.");
+      if (port == -1) {
+        port = 25;
       }
-      MDC.remove("Status");
 
-      metrics.httpStatus(this.config.uri(), response.statusCode());
-    } catch (final InterruptedException e) {
-      Thread.currentThread().interrupt();
+      try (final var socket = new Socket(host, port)) {
+        final var out =
+          new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
+        final var in =
+          new BufferedReader(new InputStreamReader(socket.getInputStream()));
+
+        {
+          in.readLine();
+        }
+
+        out.write("EHLO %s\n".formatted(this.config.helo()));
+        out.write("\n");
+        out.flush();
+
+        {
+          final var r = in.readLine();
+          if (!r.startsWith("250")) {
+            LOG.error("Request failed: {}", r);
+            metrics.smtpError(this.config.uri(), r);
+            return;
+          }
+        }
+
+        out.write("QUIT\n");
+        out.flush();
+      }
+
+      LOG.info("Request succeeded.");
+      metrics.smtpOK(this.config.uri(), "");
     } catch (final Exception e) {
       LOG.error("Request exception: ", e);
-      metrics.httpException(this.config.uri(), e);
+      metrics.smtpException(this.config.uri(), e);
     }
   }
 
