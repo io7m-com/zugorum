@@ -38,7 +38,7 @@
     <com.io7m.quarrel.version>1.8.0</com.io7m.quarrel.version>
 
     <!-- Third-party dependencies. -->
-    <tools.jackson.version>3.0.3</tools.jackson.version>
+    <tools.jackson.version>3.0.4</tools.jackson.version>
     <io.helidon.version>4.3.3</io.helidon.version>
   </properties>
 
