@@ -39,7 +39,7 @@
 
     <!-- Third-party dependencies. -->
     <tools.jackson.version>3.0.4</tools.jackson.version>
-    <io.helidon.version>4.3.3</io.helidon.version>
+    <io.helidon.version>4.3.4</io.helidon.version>
   </properties>
 
   <licenses>
