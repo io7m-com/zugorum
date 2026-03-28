@@ -190,12 +190,6 @@
     <pluginManagement>
       <plugins>
         <plugin>
-          <groupId>com.io7m.xstructural</groupId>
-          <artifactId>com.io7m.xstructural.maven_plugin</artifactId>
-          <version>${com.io7m.xstructural.version}</version>
-        </plugin>
-
-        <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-checkstyle-plugin</artifactId>
           <configuration>
